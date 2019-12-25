@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "ag-grid-community": "^22.1.1",
+    "ag-grid-enterprise": "^22.1.1",
     "ag-grid-vue": "^22.1.1",
     "core-js": "^3.4.3",
     "vue": "^2.6.10",
