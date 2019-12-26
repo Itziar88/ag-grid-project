@@ -1,11 +1,14 @@
 <template>
 	<div>
 		<button @click="getSelectedRows()">Get Selected Rows</button>
-		<ag-grid-vue style="width: 500px; height: 500px;"
+		<ag-grid-vue style="height: 700px;"
 			class="ag-theme-balham"
 			:columnDefs="columnDefs"
 			:rowData="rowData"
+            :gridOptions="gridOptions"
+            :autoGroupColumnDef="autoGroupColumnDef"
 			rowSelection="multiple"
+            rowDragManaged=true
 			@grid-ready="onGridReady"
 		>
 		</ag-grid-vue>
@@ -19,6 +22,7 @@ export default {
 	name: 'App',
 	data() {
 		return {
+            gridOptions: null,
 			columnDefs: null,
             rowData: null,
             gridApi: null,
@@ -42,34 +46,34 @@ export default {
         }
     },
 	beforeMount() {
-		// this.columnDefs = [
-		// 	{headerName: 'Make', field: 'make', sortable: true, filter: true},
-		// 	{headerName: 'Model', field: 'model', sortable: true, filter: true},
-		// 	{headerName: 'Price', field: 'price', sortable: true, filter: true}
-		// ];
-
-		// this.rowData = [
-		// 	{make: 'Toyota', model: 'Celica', price: 35000},
-		// 	{make: 'Ford', model: 'Mondeo', price: 32000},
-		// 	{make: 'Porsche', model: 'Boxter', price: 72000}
-		// ];
+        this.gridOptions = {
+            // rowStyle: {background: 'beige'},
+            // rowClass: 'my-class',
+            getRowClass: function (params) {
+                if(params.node.rowIndex % 2 === 0) {
+                    return 'my-class';
+                }
+            },
+            rowHeight: 35,
+        };
+        this.defaultColDef = { resizable: true, filter: true };
 		this.columnDefs = [
-        {headerName: 'Make', field: 'make', rowGroup: true},
-        {headerName: 'Model', field: 'model'},
-        {headerName: 'Price', field: 'price'}
-        ];
-        this.autoGroupColumnDef = {
-            headerName: 'Model',
-            field: 'model',
-            cellRenderer: 'agGroupCellRendeder',
-            cellRendererParams: {
-                checkbox: true
+            {
+                headerName: 'Users',
+                children: [
+                    {flex: 1, headerName: 'Name', field: 'name', rowDrag: true},
+                    {flex: 1, headerName: 'Username', field: 'username'},
+                    {flex: 1, headerName: 'Email', field: 'email'},
+                    {flex: 1, headerName: 'City', field: 'address.city'},
+                    {flex: 1, headerName: 'Phone', field: 'phone'},
+                    {flex: 1, headerName: 'Company', field: 'company.name', sortable: true},
+                ]
             }
-        }
-        fetch('https://api.myjson.com/bins/15psn9')
+        ];
+        fetch('https://jsonplaceholder.typicode.com/users')
             .then(result => result.json())
             .then(rowData => this.rowData = rowData);
-        }
+    },
 }
 </script>
 
@@ -86,5 +90,14 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+.my-class {
+    background-color: rgba(antiquewhite, 0.2) !important;
+}
+.ag-row-hover {
+    background-color: rgba(aqua, 0.2) !important;
+}
+.ag-column-hover {
+    background-color: rgba(burlywood, 0.2);
 }
 </style>
