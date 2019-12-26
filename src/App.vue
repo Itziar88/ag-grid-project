@@ -20,24 +20,27 @@ export default {
 	data() {
 		return {
 			columnDefs: null,
-			rowData: null
+            rowData: null,
+            gridApi: null,
+            columnApi: null,
+            autoGroupColumnDef: null,
 		}
 	},
 	components: {
 		AgGridVue
 	},
 	methods: {
-            onGridReady(params) {
-                this.gridApi = params.api;
-                this.columnApi = params.columnApi;
-            },
-            getSelectedRows() {
-                const selectedNodes = this.gridApi.getSelectedNodes();
-                const selectedData = selectedNodes.map( node => node.data );
-                const selectedDataStringPresentation = selectedData.map( node => node.make + ' ' + node.model).join(', ');
-                alert(`Selected nodes: ${selectedDataStringPresentation}`);
-            }
+        onGridReady(params) {
+            this.gridApi = params.api;
+            this.columnApi = params.columnApi;
         },
+        getSelectedRows() {
+            const selectedNodes = this.gridApi.getSelectedNodes();
+            const selectedData = selectedNodes.map( node => node.data );
+            const selectedDataStringPresentation = selectedData.map( node => node.make + ' ' + node.model).join(', ');
+            alert(`Selected nodes: ${selectedDataStringPresentation}`);
+        }
+    },
 	beforeMount() {
 		// this.columnDefs = [
 		// 	{headerName: 'Make', field: 'make', sortable: true, filter: true},
@@ -51,21 +54,30 @@ export default {
 		// 	{make: 'Porsche', model: 'Boxter', price: 72000}
 		// ];
 		this.columnDefs = [
-        {headerName: 'Make', field: 'make', checkboxSelection: true},
+        {headerName: 'Make', field: 'make', rowGroup: true},
         {headerName: 'Model', field: 'model'},
         {headerName: 'Price', field: 'price'}
-    ];
-
-    fetch('https://api.myjson.com/bins/ly7d1')
-        .then(result => result.json())
-        .then(rowData => this.rowData = rowData);
-	}
+        ];
+        this.autoGroupColumnDef = {
+            headerName: 'Model',
+            field: 'model',
+            cellRenderer: 'agGroupCellRendeder',
+            cellRendererParams: {
+                checkbox: true
+            }
+        }
+        fetch('https://api.myjson.com/bins/15psn9')
+            .then(result => result.json())
+            .then(rowData => this.rowData = rowData);
+        }
 }
 </script>
 
 <style lang="scss">
 @import "../node_modules/ag-grid-community/dist/styles/ag-theme-balham.css";
 @import "../node_modules/ag-grid-community/dist/styles/ag-grid.css";
+// @import "../node_modules/ag-grid-community/src/styles/ag-grid.scss";
+// @import "../node_modules/ag-grid-community/src/styles/ag-theme-balham/sass/ag-theme-balham.scss";
 
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
