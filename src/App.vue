@@ -45,22 +45,50 @@ export default {
 		AgGridVue
 	},
 	beforeMount() {
-        this.gridOptions = {};
+        this.gridOptions = { floatingFilter: true };
         this.columnDefs = [
             {
                 headerName: "Athlete",
                 field: "athlete",
-                width: 150
+                width: 150,
+                filter: "agTextColumnFilter",
+                filterParams: {
+                    resetButton: true,
+                    applyButton: true,
+                    debounceMs: 200
+                }
             },
             {
                 headerName: "Age",
                 field: "age",
-                width: 90
+                width: 90,
+                filter: "agNumberColumnFilter",
+                filterParams: {
+                filterOptions: [
+                        'lessThan',
+                        {
+                            displayKey: 'lessThanWithNulls',
+                            displayName: 'Less Than with Nulls',
+                            test: function(filterValue, cellValue) {
+                                return cellValue == null || cellValue < filterValue;
+                            }
+                        },
+                        'greaterThan',
+                        {
+                            displayKey: 'greaterThanWithNulls',
+                            displayName: 'Greater Than with Nulls',
+                            test: function(filterValue, cellValue) {
+                                return cellValue == null || cellValue > filterValue;
+                            }
+                        }
+                    ]
+                }
             },
             {
                 headerName: "Country",
                 field: "country",
-                width: 120
+                width: 120,
+                filter: true,
             },
             {
                 headerName: "Year",
@@ -75,7 +103,29 @@ export default {
             {
                 headerName: "Sport",
                 field: "sport",
-                width: 110
+                width: 110,
+                filter: "agTextColumnFilter",
+                filterParams: {
+                    filterOptions: [
+                        "contains",
+                        {
+                            displayKey: "startsA",
+                            displayName: 'Starts With "A"',
+                            test: (filterValue, cellValue) => {
+                                return cellValue != null && cellValue.indexOf("a") == 0;
+                            },
+                            hideFilterInput: true
+                        },
+                        {
+                            displayKey: "startsB",
+                            displayName: 'Starts With "N"',
+                            test: function(filterValue, cellValue) {
+                                return cellValue != null && cellValue.indexOf("n") == 0;
+                            },
+                            hideFilterInput: true
+                        }
+                    ]
+                }
             },
             {
                 headerName: "Gold",
@@ -164,13 +214,4 @@ body {
     height: 100%;
 }
 
-.my-class {
-    background-color: rgba(antiquewhite, 0.2) !important;
-}
-.ag-row-hover {
-    background-color: rgba(aqua, 0.2) !important;
-}
-.ag-column-hover {
-    background-color: rgba(burlywood, 0.2);
-}
 </style>
