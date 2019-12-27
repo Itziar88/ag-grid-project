@@ -1,17 +1,25 @@
 <template>
 	<div>
 		<button @click="getSelectedRows()">Get Selected Rows</button>
-		<ag-grid-vue style="height: 700px;"
-			class="ag-theme-balham"
-			:columnDefs="columnDefs"
-			:rowData="rowData"
-            :gridOptions="gridOptions"
-            :autoGroupColumnDef="autoGroupColumnDef"
-			rowSelection="multiple"
-            rowDragManaged=true
-			@grid-ready="onGridReady"
-		>
-		</ag-grid-vue>
+        <div style="margin-bottom: 5px;">
+            <button @click="fillLarge">Fill 100%</button>
+            <button @click="fillMedium">Fill 60%</button>
+            <button @click="fillExact">Exactly 400 x 400 pixels</button>
+        </div>
+		<div style="height: calc(100% - 25px);">
+            <ag-grid-vue :style="{width, height}"
+                class="ag-theme-balham"
+                :columnDefs="columnDefs"
+                :rowData="rowData"
+                :gridOptions="gridOptions"
+                :autoGroupColumnDef="autoGroupColumnDef"
+                :defaultColDef="defaultColDef"
+                rowSelection="multiple"
+                rowDragManaged=true
+                @grid-ready="onGridReady"
+            >
+            </ag-grid-vue>
+		</div>
 	</div>
 </template>
 
@@ -28,6 +36,9 @@ export default {
             gridApi: null,
             columnApi: null,
             autoGroupColumnDef: null,
+            defaultColDef: null,
+            height: '100%',
+            width: '100%',
 		}
 	},
 	components: {
@@ -43,7 +54,20 @@ export default {
             const selectedData = selectedNodes.map( node => node.data );
             const selectedDataStringPresentation = selectedData.map( node => node.make + ' ' + node.model).join(', ');
             alert(`Selected nodes: ${selectedDataStringPresentation}`);
-        }
+        },
+        fillLarge() {
+            this.setWidthAndHeight('100%', '100%');
+        },
+        fillMedium() {
+            this.setWidthAndHeight('60%', '60%');
+        },
+        fillExact() {
+            this.setWidthAndHeight('400px', '400px');
+        },
+        setWidthAndHeight(width, height) {
+            this.width = width;
+            this.height = height;
+        },
     },
 	beforeMount() {
         this.gridOptions = {
@@ -65,11 +89,15 @@ export default {
                     {flex: 1, headerName: 'Username', field: 'username'},
                     {flex: 1, headerName: 'Email', field: 'email'},
                     {flex: 1, headerName: 'City', field: 'address.city'},
-                    {flex: 1, headerName: 'Phone', field: 'phone'},
+                    {flex: 1, headerName: 'Phone', field: 'phone', cellStyle: { backgroundColor: "#aaffaa" }},
                     {flex: 1, headerName: 'Company', field: 'company.name', sortable: true},
                 ]
             }
         ];
+        this.defaultColDef = {
+            editable: true,
+            width: 100
+        };
         fetch('https://jsonplaceholder.typicode.com/users')
             .then(result => result.json())
             .then(rowData => this.rowData = rowData);
