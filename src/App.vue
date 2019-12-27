@@ -1,26 +1,27 @@
 <template>
-	<div>
-		<button @click="getSelectedRows()">Get Selected Rows</button>
+    <div style="height: 100%">
         <div style="margin-bottom: 5px;">
             <button @click="fillLarge">Fill 100%</button>
             <button @click="fillMedium">Fill 60%</button>
             <button @click="fillExact">Exactly 400 x 400 pixels</button>
         </div>
-		<div style="height: calc(100% - 25px);">
-            <ag-grid-vue :style="{width, height}"
-                class="ag-theme-balham"
-                :columnDefs="columnDefs"
-                :rowData="rowData"
+        <div class="test-container" style="height: 100%">
+            <div class="test-header">
+                Selection:
+                <span id="selectedRows"></span>
+            </div>
+            <ag-grid-vue :style="{width, height}" class="ag-theme-balham" id="myGrid"
                 :gridOptions="gridOptions"
-                :autoGroupColumnDef="autoGroupColumnDef"
-                :defaultColDef="defaultColDef"
-                rowSelection="multiple"
-                rowDragManaged=true
                 @grid-ready="onGridReady"
+                :columnDefs="columnDefs"
+                :rowSelection="rowSelection"
+                :rowData="rowData"
+                :rowMultiSelectWithClick="true"
+                @selection-changed="onSelectionChanged"
             >
             </ag-grid-vue>
-		</div>
-	</div>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -31,76 +32,114 @@ export default {
 	data() {
 		return {
             gridOptions: null,
-			columnDefs: null,
-            rowData: null,
             gridApi: null,
             columnApi: null,
-            autoGroupColumnDef: null,
-            defaultColDef: null,
+            columnDefs: null,
+            rowSelection: null,
+            rowData: null,
             height: '100%',
-            width: '100%',
+            width: '100%'
 		}
 	},
 	components: {
 		AgGridVue
 	},
-	methods: {
-        onGridReady(params) {
-            this.gridApi = params.api;
-            this.columnApi = params.columnApi;
-        },
-        getSelectedRows() {
-            const selectedNodes = this.gridApi.getSelectedNodes();
-            const selectedData = selectedNodes.map( node => node.data );
-            const selectedDataStringPresentation = selectedData.map( node => node.make + ' ' + node.model).join(', ');
-            alert(`Selected nodes: ${selectedDataStringPresentation}`);
-        },
+	beforeMount() {
+        this.gridOptions = {};
+        this.columnDefs = [
+            {
+                headerName: "Athlete",
+                field: "athlete",
+                width: 150
+            },
+            {
+                headerName: "Age",
+                field: "age",
+                width: 90
+            },
+            {
+                headerName: "Country",
+                field: "country",
+                width: 120
+            },
+            {
+                headerName: "Year",
+                field: "year",
+                width: 90
+            },
+            {
+                headerName: "Date",
+                field: "date",
+                width: 110
+            },
+            {
+                headerName: "Sport",
+                field: "sport",
+                width: 110
+            },
+            {
+                headerName: "Gold",
+                field: "gold",
+                width: 100
+            },
+            {
+                headerName: "Silver",
+                field: "silver",
+                width: 100
+            },
+            {
+                headerName: "Bronze",
+                field: "bronze",
+                width: 100
+            },
+            {
+                headerName: "Total",
+                field: "total",
+                width: 100
+            }
+        ];
+        // this.rowSelection = "single";
+        this.rowSelection = "multiple";
+    },
+    mounted() {
+        this.gridApi = this.gridOptions.api;
+        this.gridColumnApi = this.gridOptions.columnApi;
+    },
+    methods: {
         fillLarge() {
+            console.log("here");
             this.setWidthAndHeight('100%', '100%');
         },
         fillMedium() {
-            this.setWidthAndHeight('60%', '60%');
+          this.setWidthAndHeight('60%', '60%');
         },
         fillExact() {
-            this.setWidthAndHeight('400px', '400px');
+          this.setWidthAndHeight('400px', '400px');
         },
         setWidthAndHeight(width, height) {
-            this.width = width;
-            this.height = height;
+          this.width = width;
+          this.height = height;
         },
-    },
-	beforeMount() {
-        this.gridOptions = {
-            // rowStyle: {background: 'beige'},
-            // rowClass: 'my-class',
-            getRowClass: function (params) {
-                if(params.node.rowIndex % 2 === 0) {
-                    return 'my-class';
+        onSelectionChanged() {
+            var selectedRows = this.gridApi.getSelectedRows();
+            document.querySelector("#selectedRows").innerHTML = selectedRows.length === 1 ? selectedRows[0].athlete : "";
+        },
+        onGridReady(params) {
+            const httpRequest = new XMLHttpRequest();
+            const updateData = data => {
+                this.rowData = data;
+            };
+            httpRequest.open(
+                "GET",
+                "https://raw.githubusercontent.com/ag-grid/ag-grid/master/packages/ag-grid-docs/src/olympicWinnersSmall.json"
+            );
+            httpRequest.send();
+            httpRequest.onreadystatechange = () => {
+                if (httpRequest.readyState === 4 && httpRequest.status === 200) {
+                    updateData(JSON.parse(httpRequest.responseText));
                 }
-            },
-            rowHeight: 35,
-        };
-        this.defaultColDef = { resizable: true, filter: true };
-		this.columnDefs = [
-            {
-                headerName: 'Users',
-                children: [
-                    {flex: 1, headerName: 'Name', field: 'name', rowDrag: true},
-                    {flex: 1, headerName: 'Username', field: 'username'},
-                    {flex: 1, headerName: 'Email', field: 'email'},
-                    {flex: 1, headerName: 'City', field: 'address.city'},
-                    {flex: 1, headerName: 'Phone', field: 'phone', cellStyle: { backgroundColor: "#aaffaa" }},
-                    {flex: 1, headerName: 'Company', field: 'company.name', sortable: true},
-                ]
-            }
-        ];
-        this.defaultColDef = {
-            editable: true,
-            width: 100
-        };
-        fetch('https://jsonplaceholder.typicode.com/users')
-            .then(result => result.json())
-            .then(rowData => this.rowData = rowData);
+            };
+        }
     },
 }
 </script>
@@ -108,8 +147,6 @@ export default {
 <style lang="scss">
 @import "../node_modules/ag-grid-community/dist/styles/ag-theme-balham.css";
 @import "../node_modules/ag-grid-community/dist/styles/ag-grid.css";
-// @import "../node_modules/ag-grid-community/src/styles/ag-grid.scss";
-// @import "../node_modules/ag-grid-community/src/styles/ag-theme-balham/sass/ag-theme-balham.scss";
 
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -119,6 +156,14 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
+html {
+    width: 100%;
+    height: 100%;
+}
+body {
+    height: 100%;
+}
+
 .my-class {
     background-color: rgba(antiquewhite, 0.2) !important;
 }
